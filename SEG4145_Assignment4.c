@@ -50,6 +50,7 @@ OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) task
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
 void* TaskPointers[N_TASKS] = { Task1, Task2, Task3 };	/* Function pointers to the tasks */
 OS_EVENT* queue;
+char dummyArr[5];
 
 /*
 *********************************************************************************************************
@@ -101,9 +102,9 @@ void TaskStart(void *pdata)
     /* 
      * Here we create all other tasks (threads)
      */
-	char* dummyArr[5];
 	void* pointer = (void*)dummyArr;
 	queue = OSQCreate(&pointer, 5);
+	if (queue == 0) printf("LOL U SUK");
     TaskStartCreateTasks();
 
     while (1)								/* Startup task's infinite loop	       */
@@ -181,7 +182,24 @@ void Task2(void *pdata)
 	INT8U* err;
     while (1) {
 		if (i == 0) {
-			OSQPost(queue, (void*)&msg);
+			INT8U result = OSQPost(queue, (void*)&msg);
+			switch (result) {
+				case OS_NO_ERR:
+					printf("Message was deposited in the queue.\n");
+					break;
+				case OS_Q_FULL:
+					printf("No room in the queue.\n");
+					break;
+				case OS_ERR_EVENT_TYPE:
+					printf("pevent is not pointing to a message queue.\n");
+					break;
+				case OS_ERR_PEVENT_NULL:
+					printf("pevent is a NULL pointer.\n");
+					break;
+				case OS_ERR_POST_NULL_PTR:
+					printf("msg is a NULL pointer.\n");
+					break;
+				}
 			i++;
 		} else {
 			char rec[2];
