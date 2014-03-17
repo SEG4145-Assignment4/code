@@ -27,6 +27,13 @@
 #define TASK_START_PRIO			0		/* Priority of your startup task		       	 */
 #define N_TASKS                     3           /* Number of (child) tasks to spawn                    */
 
+#define MOVE_TILE_FORWARD 0
+#define MOVE_TILE_BACKWARD 1
+#define TURN_90_CW 2
+#define PERFORM_CIRCLE_CW 3
+#define PERFORM_CIRCLE_CCW 4
+#define INCREASE_CIRCLE_RADIUS 5
+
 /*
 *********************************************************************************************************
 *                                           FUNCTION PROTOTYPES
@@ -37,7 +44,7 @@ void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void Task1(void*); /* Task 1 declaration */
 void Task2(void*); /* Task 2 declaration */
-void Task3(void*); /* Task 3 declaration */
+void keyboardControlTask(void*); /* keyboardControlTask declaration */
 
 /*
 *********************************************************************************************************
@@ -48,9 +55,9 @@ void Task3(void*); /* Task 3 declaration */
 OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
-void* TaskPointers[N_TASKS] = { Task1, Task2, Task3 };	/* Function pointers to the tasks */
 OS_EVENT* queue;
 char dummyArr[5];
+void* TaskPointers[N_TASKS] = { Task1, Task2, keyboardControlTask };	/* Function pointers to the tasks */
 
 /*
 *********************************************************************************************************
@@ -62,11 +69,11 @@ int main(void)
 {
     OSInit();						/* Initialize uC/OS-II						 */
 
-    /* 
+    /*
      * Create and initialize any semaphores, mailboxes etc. here
      */
 
-    OSTaskCreate(TaskStart, (void *) 0, 
+    OSTaskCreate(TaskStart, (void *) 0,
 		     &TaskStartStk[TASK_STK_SIZE - 1], TASK_START_PRIO);	/* Create the startup task	 */
 
     OSStart();						/* Start multitasking						 */
@@ -99,7 +106,7 @@ void TaskStart(void *pdata)
            ((FP32) OSVersion())/100, ((FP32)OSPortVersion())/100);
     printf("Press the Escape key to stop.\n\n");
 
-    /* 
+    /*
      * Here we create all other tasks (threads)
      */
 	void* pointer = (void*)dummyArr;
@@ -120,8 +127,8 @@ void TaskStart(void *pdata)
             }
         }
 
-        /* 
-         * Don't forget to call the uC/OS-II scheduler with OSTimeDly(), 
+        /*
+         * Don't forget to call the uC/OS-II scheduler with OSTimeDly(),
          * to give other tasks a chance to run
          */
 
@@ -204,9 +211,9 @@ void Task2(void *pdata)
 		} else {
 			char rec[2];
 			printf("getting value\n");
-			
+
 			char* returned = (char*)OSQPend(queue, 0, err);
-			
+
 			if (returned != 0) {
 				printf("got value\n");
 				rec[0] = *returned;
@@ -242,16 +249,41 @@ void Task2(void *pdata)
     }
 }
 
-void Task3(void *pdata)
+void keyboardControlTask(void *pdata)
 {
-    INT8U whoami = *(int*) pdata;
-    INT8U counter = whoami % 2;
-
+    INT16S key;
+    INT8U circle_cw = 1;
+    INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
     while (1) {
-      printf("I am task #%d and my counter is at %d.\n",
-             whoami, counter);
-      counter += 2;
+        if (PC_GetKey(&key) == TRUE) {                     /* See if key has been pressed              */
+            switch (key) {
+                case '0':
+                    if (!mode) {
+                    }
+                    else {
 
-	OSTimeDly(50);
+                    }
+                    break;
+                case '1':
+                    if (!mode) {
+
+                    }
+                    else { //mode == 1
+
+                    }
+                    break;
+                case '2':
+                    if (!mode) {
+                    }
+                    else { //mode == 1
+
+                    }
+                    break;
+                case '3':
+                    mode = !mode;
+                    break;
+            }
+        }
+        OSTimeDly(10);
     }
 }
