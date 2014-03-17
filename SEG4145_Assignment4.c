@@ -43,7 +43,7 @@
 
 void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
-void Task1(void*); /* Task 1 declaration */
+void lcdTask(void*); /* Task 1 declaration */
 void Task2(void*); /* Task 2 declaration */
 
 /*
@@ -57,7 +57,7 @@ OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) task
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
 OS_EVENT* queue;
 char dummyArr[5];
-void* TaskPointers[N_TASKS] = { Task1, Task2 };	/* Function pointers to the tasks */
+void* TaskPointers[N_TASKS] = { lcdTask, Task2 };	/* Function pointers to the tasks */
 
 /*
 *********************************************************************************************************
@@ -188,15 +188,18 @@ static void TaskStartCreateTasks(void)
 *********************************************************************************************************
 */
 
-void Task1(void *pdata)
+void lcdTask(void *pdata)
 {
     INT8U whoami = *(int*) pdata;
     INT8U counter = whoami % 2;
 
     while (1) {
-      printf("I am task #%d and my counter is at %d.\n",
-             whoami, counter);
-      counter += 2;
+     char *msg = "aaaaa"; //read from message queue
+	 if(msg != NULL) {
+		printf("Message printed to LCD screen: ");
+		printf(msg);
+		printf("\n");
+	 }
 
 	OSTimeDly(50);
     }
