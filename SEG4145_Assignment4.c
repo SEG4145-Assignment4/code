@@ -27,12 +27,13 @@
 #define TASK_START_PRIO			0		/* Priority of your startup task		       	 */
 #define N_TASKS                     3           /* Number of (child) tasks to spawn                    */
 
-#define MOVE_TILE_FORWARD 0
-#define MOVE_TILE_BACKWARD 1
-#define TURN_90_CW 2
-#define PERFORM_CIRCLE_CW 3
-#define PERFORM_CIRCLE_CCW 4
-#define INCREASE_CIRCLE_RADIUS 5
+//Messages between keyboardControl and movementControl
+#define MOVE_TILE_FORWARD_MESSAGE 0
+#define MOVE_TILE_BACKWARD_MESSAGE 1
+#define TURN_90_CW_MESSAGE 2
+#define PERFORM_CIRCLE_CW_MESSAGE 3
+#define PERFORM_CIRCLE_CCW_MESSAGE 4
+#define INCREASE_CIRCLE_RADIUS_MESSAGE 5
 
 /*
 *********************************************************************************************************
