@@ -49,6 +49,7 @@ OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
 void* TaskPointers[N_TASKS] = { Task1, Task2, Task3 };	/* Function pointers to the tasks */
+OS_EVENT* queue;
 
 /*
 *********************************************************************************************************
@@ -100,7 +101,9 @@ void TaskStart(void *pdata)
     /* 
      * Here we create all other tasks (threads)
      */
-
+	char* dummyArr[5];
+	void* pointer = (void*)dummyArr;
+	queue = OSQCreate(&pointer, 5);
     TaskStartCreateTasks();
 
     while (1)								/* Startup task's infinite loop	       */
@@ -173,13 +176,49 @@ void Task1(void *pdata)
 
 void Task2(void *pdata)
 {
-    INT8U whoami = *(int*) pdata;
-    INT8U counter = whoami % 2;
-
+	int i = 0;
+	char msg = 'a';
+	INT8U* err;
     while (1) {
-      printf("I am task #%d and my counter is at %d.\n",
-             whoami, counter);
-      counter += 2;
+		if (i == 0) {
+			OSQPost(queue, (void*)&msg);
+			i++;
+		} else {
+			char rec[2];
+			printf("getting value\n");
+			
+			char* returned = (char*)OSQPend(queue, 0, err);
+			
+			if (returned != 0) {
+				printf("got value\n");
+				rec[0] = *returned;
+				rec[1] = '\0';
+				printf("set null terminator\n");
+				printf(rec);
+				printf("printed\n");
+			} else {
+				printf("Didn't get notang.\n");
+				INT8U error = *err;
+				switch (error){
+					case OS_NO_ERR:
+						printf("Message was received");
+						break;
+					case OS_TIMEOUT:
+						printf("Message was not received within the specified timeout.");
+						break;
+					case OS_ERR_EVENT_TYPE:
+						printf("pevent is not pointing to a message queue");
+						break;
+					case OS_ERR_PEVENT_NULL:
+						printf("pevent is a NULL pointer");
+						break;
+					case OS_ERR_PEND_ISR:
+						printf("This function was called from an ISR and uC/OS-II must suspend the task. To avoid this don't call this function from an ISR.");
+						break;
+				}
+			}
+			i--;
+		}
 
 	OSTimeDly(50);
     }
