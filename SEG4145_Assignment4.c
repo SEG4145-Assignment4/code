@@ -25,7 +25,7 @@
 
 #define TASK_STK_SIZE			512		/* Size of start task's stacks                         */
 #define TASK_START_PRIO			0		/* Priority of your startup task		       	 */
-#define N_TASKS                     3           /* Number of (child) tasks to spawn                    */
+#define N_TASKS                 2           /* Number of (child) tasks to spawn                    */
 
 //Messages between keyboardControl and movementControl
 #define MOVE_TILE_FORWARD_MESSAGE 0
@@ -45,7 +45,6 @@ void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void Task1(void*); /* Task 1 declaration */
 void Task2(void*); /* Task 2 declaration */
-void keyboardControlTask(void*); /* keyboardControlTask declaration */
 
 /*
 *********************************************************************************************************
@@ -58,7 +57,7 @@ OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) task
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
 OS_EVENT* queue;
 char dummyArr[5];
-void* TaskPointers[N_TASKS] = { Task1, Task2, keyboardControlTask };	/* Function pointers to the tasks */
+void* TaskPointers[N_TASKS] = { Task1, Task2 };	/* Function pointers to the tasks */
 
 /*
 *********************************************************************************************************
@@ -89,7 +88,8 @@ int main(void)
 *********************************************************************************************************
 */
 void TaskStart(void *pdata)
-{   INT16S key;
+{
+    INT16S key;
     pdata = pdata;                                         /* Prevent compiler warning                 */
 
 
@@ -115,25 +115,44 @@ void TaskStart(void *pdata)
 	if (queue == 0) printf("LOL U SUK");
     TaskStartCreateTasks();
 
-    while (1)								/* Startup task's infinite loop	       */
-    {
-	  /*
-	   * Place additional code for your startup task here
-         * or before the loop, as needed
-         */
+    INT8U circle_cw = 1; //true if circle goes clockwise, false if circle goes counter clockwise
+    INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
+    while (1) {
+        if (PC_GetKey(&key) == TRUE) { //See if key has been pressed
+            switch (key) {
+                case 0x1B:
+                    exit(0);
+                    break;
+                case '0':
+                    if (!mode) {
 
-        if (PC_GetKey(&key) == TRUE) {                     /* See if key has been pressed              */
-            if (key == 0x1B) {                             /* If yes, see if it's the ESCAPE key       */
-                exit(0);  	                             /* End program                              */
+                    }
+                    else {
+
+                    }
+                    break;
+                case '1':
+                    if (!mode) {
+
+                    }
+                    else { //mode == 1
+
+                    }
+                    break;
+                case '2':
+                    if (!mode) {
+
+                    }
+                    else { //mode == 1
+
+                    }
+                    break;
+                case '3':
+                    mode = !mode;
+                    break;
             }
         }
-
-        /*
-         * Don't forget to call the uC/OS-II scheduler with OSTimeDly(),
-         * to give other tasks a chance to run
-         */
-
-        OSTimeDly(10);						     /* Wait 10 ticks                            */
+        OSTimeDly(10);
     }
 }
 
@@ -245,46 +264,6 @@ void Task2(void *pdata)
 			}
 			i--;
 		}
-
 	OSTimeDly(50);
-    }
-}
-
-void keyboardControlTask(void *pdata)
-{
-    INT16S key;
-    INT8U circle_cw = 1;
-    INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
-    while (1) {
-        if (PC_GetKey(&key) == TRUE) {                     /* See if key has been pressed              */
-            switch (key) {
-                case '0':
-                    if (!mode) {
-                    }
-                    else {
-
-                    }
-                    break;
-                case '1':
-                    if (!mode) {
-
-                    }
-                    else { //mode == 1
-
-                    }
-                    break;
-                case '2':
-                    if (!mode) {
-                    }
-                    else { //mode == 1
-
-                    }
-                    break;
-                case '3':
-                    mode = !mode;
-                    break;
-            }
-        }
-        OSTimeDly(10);
     }
 }
