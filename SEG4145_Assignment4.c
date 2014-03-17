@@ -25,7 +25,19 @@
 
 #define TASK_STK_SIZE			512		/* Size of start task's stacks                         */
 #define TASK_START_PRIO			0		/* Priority of your startup task		       	 */
-#define N_TASKS                     2           /* Number of (child) tasks to spawn                    */
+#define N_TASKS                     3           /* Number of (child) tasks to spawn                    */
+
+/*
+*********************************************************************************************************
+*                                           FUNCTION PROTOTYPES
+*********************************************************************************************************
+*/
+
+void TaskStart(void *data);				/* Startup task							 */
+static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
+void Task1(void*); /* Task 1 declaration */
+void Task2(void*); /* Task 2 declaration */
+void Task3(void*); /* Task 3 declaration */
 
 /*
 *********************************************************************************************************
@@ -36,16 +48,7 @@
 OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
-
-/*
-*********************************************************************************************************
-*                                           FUNCTION PROTOTYPES
-*********************************************************************************************************
-*/
-
-void TaskStart(void *data);				/* Startup task							 */
-static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
-void Task(void*);						/* The body of each child task                         */
+void* TaskPointers[N_TASKS] = { Task1, Task2, Task3 };	/* Function pointers to the tasks */
 
 /*
 *********************************************************************************************************
@@ -136,7 +139,7 @@ static void TaskStartCreateTasks(void)
     for (i = 0; i < N_TASKS; i++) {
         prio = i + 1;
         TaskData[i] = prio;
-        OSTaskCreateExt(Task,
+        OSTaskCreateExt(TaskPointers[i],
                         (void *) &TaskData[i],
                         &TaskStk[i][TASK_STK_SIZE - 1],
                         prio,
@@ -154,7 +157,35 @@ static void TaskStartCreateTasks(void)
 *********************************************************************************************************
 */
 
-void Task(void *pdata)
+void Task1(void *pdata)
+{
+    INT8U whoami = *(int*) pdata;
+    INT8U counter = whoami % 2;
+
+    while (1) {
+      printf("I am task #%d and my counter is at %d.\n",
+             whoami, counter);
+      counter += 2;
+
+	OSTimeDly(50);
+    }
+}
+
+void Task2(void *pdata)
+{
+    INT8U whoami = *(int*) pdata;
+    INT8U counter = whoami % 2;
+
+    while (1) {
+      printf("I am task #%d and my counter is at %d.\n",
+             whoami, counter);
+      counter += 2;
+
+	OSTimeDly(50);
+    }
+}
+
+void Task3(void *pdata)
 {
     INT8U whoami = *(int*) pdata;
     INT8U counter = whoami % 2;
