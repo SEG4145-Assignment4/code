@@ -194,7 +194,7 @@ void lcdTask(void *pdata)
     INT8U counter = whoami % 2;
 
     while (1) {
-     char *msg = "aaaaa"; //read from message queue
+     char *msg = "aaaaa"; //TODO read from message queue
 	 if(msg != NULL) {
 		printf("Message printed to LCD screen: ");
 		printf(msg);
@@ -207,11 +207,14 @@ void lcdTask(void *pdata)
 
 void Task2(void *pdata)
 {
-	int i = 0;
+	/*int i = 0;
 	char msg = 'a';
-	INT8U* err;
+	INT8U* err;*/
+	int mode = 1;
+	int radius = 2;
+	int direction = 0; //0 for clockwise, 1 for counterclockwise
     while (1) {
-		if (i == 0) {
+		/*if (i == 0) {
 			INT8U result = OSQPost(queue, (void*)&msg);
 			switch (result) {
 				case OS_NO_ERR:
@@ -266,7 +269,69 @@ void Task2(void *pdata)
 				}
 			}
 			i--;
+		}*/
+		char *cmd = "aaaaa"; //TODO read from message queue
+		if(cmd != NULL) {
+			if(mode == 1) {
+				//TODO add to lcd message queue ("Mode " + mode)
+				if(strcmp(cmd, "0")) {
+					printf("Move one tile forward\n");
+				}
+				else if(strcmp(cmd, "1")) {
+					printf("Move one tile backwards\n");
+				}
+				else if(strcmp(cmd, "2")) {
+					printf("Turn 90 degrees clockwise\n");
+				}
+				else if(strcmp(cmd, "3")) {
+					mode = 2;
+					printf("Changing to mode 2\n");
+					//TODO add to lcd message queue ("Mode " + mode)
+				}
+				else {
+					printf("Invalid command\n");
+				}
+			}
+			else { //mode == 2
+				if(strcmp(cmd, "0")) {
+					radius++;
+					if(radius == 5) {
+						radius = 2;
+					}
+					printf("Circle radius changed to ");
+					printf("%d", radius);
+					printf("\n");
+				}
+				else if(strcmp(cmd, "1")) {
+					if(direction == 0) {
+						direction = 1;
+						printf("Changing circle direction to counter-clockwise\n");
+					}
+					else {
+						direction = 0;
+						printf("Changing circle direction to clockwise\n");
+					}
+				}
+				else if(strcmp(cmd, "2")) {
+					printf("Moving ");
+					if(direction == 1) {
+						printf("counter-");
+					}
+					printf("clockwise in a circle with radius ");
+					printf("%d", radius);
+					printf("\n");
+				}
+				else if(strcmp(cmd, "3")) {
+					mode = 1;
+					printf("Changing to mode 1\n");
+					//TODO add to lcd message queue ("Mode " + mode)
+				}
+				else {
+					printf("Invalid command\n");
+				}
+			}
 		}
-	OSTimeDly(50);
+		
+		OSTimeDly(50);
     }
 }
