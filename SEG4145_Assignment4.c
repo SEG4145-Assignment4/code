@@ -217,9 +217,7 @@ void Task2(void *pdata)
 	/*int i = 0;
 	char msg = 'a';
 	INT8U* err;*/
-	int mode = 1;
 	int radius = 2;
-	int direction = 0; //0 for clockwise, 1 for counterclockwise
     while (1) {
 		/*if (i == 0) {
 			INT8U result = OSQPost(queue, (void*)&msg);
@@ -277,66 +275,33 @@ void Task2(void *pdata)
 			}
 			i--;
 		}*/
-		char *cmd = "aaaaa"; //TODO read from message queue
-		if(cmd != NULL) {
-			if(mode == 1) {
-				//TODO add to lcd message queue ("Mode " + mode)
-				if(strcmp(cmd, "0")) {
-					printf("Move one tile forward\n");
-				}
-				else if(strcmp(cmd, "1")) {
-					printf("Move one tile backwards\n");
-				}
-				else if(strcmp(cmd, "2")) {
-					printf("Turn 90 degrees clockwise\n");
-				}
-				else if(strcmp(cmd, "3")) {
-					mode = 2;
-					printf("Changing to mode 2\n");
-					//TODO add to lcd message queue ("Mode " + mode)
-				}
-				else {
-					printf("Invalid command\n");
-				}
+		INT8U cmd = -1; //TODO read from message queue
+		if(cmd == MOVE_TILE_FORWARD_MESSAGE) {
+			printf("Move one tile forward\n");
+		}
+		else if(cmd == MOVE_TILE_BACKWARD_MESSAGE) {
+			printf("Move one tile backwards\n");
+		}
+		else if(cmd == TURN_90_CW_MESSAGE) {
+			printf("Turn 90 degrees clockwise\n");
+		}
+		else if(cmd == PERFORM_CIRCLE_CW_MESSAGE) {
+			printf("Moving in a clockwise circle\n");
+		}
+		else if(cmd == PERFORM_CIRCLE_CCW_MESSAGE) {
+			printf("Moving in a counter-clockwise circle\n");
+		}
+		else if(cmd == INCREASE_CIRCLE_RADIUS_MESSAGE) {
+			radius++;
+			if(radius == 5) {
+				radius = 2;
 			}
-			else { //mode == 2
-				if(strcmp(cmd, "0")) {
-					radius++;
-					if(radius == 5) {
-						radius = 2;
-					}
-					printf("Circle radius changed to ");
-					printf("%d", radius);
-					printf("\n");
-				}
-				else if(strcmp(cmd, "1")) {
-					if(direction == 0) {
-						direction = 1;
-						printf("Changing circle direction to counter-clockwise\n");
-					}
-					else {
-						direction = 0;
-						printf("Changing circle direction to clockwise\n");
-					}
-				}
-				else if(strcmp(cmd, "2")) {
-					printf("Moving ");
-					if(direction == 1) {
-						printf("counter-");
-					}
-					printf("clockwise in a circle with radius ");
-					printf("%d", radius);
-					printf("\n");
-				}
-				else if(strcmp(cmd, "3")) {
-					mode = 1;
-					printf("Changing to mode 1\n");
-					//TODO add to lcd message queue ("Mode " + mode)
-				}
-				else {
-					printf("Invalid command\n");
-				}
-			}
+			printf("Circle radius changed to ");
+			printf("%d", radius);
+			printf("\n");
+		}
+		else {
+			printf("Invalid command\n");
 		}
 
 		OSTimeDly(50);
