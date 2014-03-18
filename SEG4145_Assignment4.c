@@ -37,6 +37,7 @@
 
 // Message queue constants
 #define MOTOR_QUEUE_SIZE 1
+#define LCD_QUEUE_SIZE 1
 
 // Debug flag
 // #define DEBUG_MODE
@@ -50,7 +51,7 @@
 void sendMessageThingy(OS_EVENT* queue, void* msg);
 void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
-void lcdTask(void*); /* Task 1 declaration */
+void displayTask(void*); /* Task 1 declaration */
 void motorTask(void*); /* Task 2 declaration */
 void sendMessage(OS_EVENT* queue, OS_EVENT* sem, void* msg); /* sendMessage declaration */
 void* receiveMessage(OS_EVENT* queue, OS_EVENT* sem); /* receiveMessage declaration */
@@ -66,12 +67,17 @@ void printSemaphoreError(INT8U error); /* printSemaphoreError declaration */
 OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
-void* TaskPointers[N_TASKS] = { lcdTask, motorTask };	/* Function pointers to the tasks */
+void* TaskPointers[N_TASKS] = { displayTask, motorTask };	/* Function pointers to the tasks */
 
 // Motor queue variables
 OS_EVENT* motorQueue; /* The queue for sending messages to the motor */
 void* motorQueueData[MOTOR_QUEUE_SIZE]; /* The memory space for the motor queue */
 OS_EVENT* motorSem; /* The semaphore controlling access to the motor queue */
+
+//LCD queue variables
+OS_EVENT* lcdQueue;
+void* lcdQueueData[LCD_QUEUE_SIZE]; /* The memory space for the motor queue */
+OS_EVENT* lcdSem; /* The semaphore controlling access to the motor queue */
 
 /*
 *********************************************************************************************************
@@ -124,6 +130,10 @@ void TaskStart(void *pdata)
 	// Motor queue initialization
 	motorQueue = OSQCreate(motorQueueData, MOTOR_QUEUE_SIZE);
 	motorSem = OSSemCreate(MOTOR_QUEUE_SIZE);
+	
+	// LCD queue initialization
+	lcdQueue = OSQCreate(lcdQueueData, LCD_QUEUE_SIZE);
+	lcdSem = OSSemCreate(LCD_QUEUE_SIZE);
 	
     /*
      * Here we create all other tasks (threads)
@@ -209,10 +219,10 @@ static void TaskStartCreateTasks(void)
 *********************************************************************************************************
 */
 
-void lcdTask(void *pdata)
+void displayTask(void *pdata)
 {
     while (1) {
-     char *msg = "aaaaa"; //TODO read from message queue
+     char *msg = (char*)receiveMessage(lcdQueue, lcdSem);
 	 if(msg != NULL) {
 		printf("Message printed to LCD screen: ");
 		printf(msg);
