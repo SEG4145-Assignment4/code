@@ -40,6 +40,8 @@
 #define DISPLAY_PFX "Display Task: "
 #define LCD_PFX "Message displayed on LCD: "
 #define LED_PFX "LED Pattern: "
+#define LINE_1_PFX "Line 1: "
+#define LINE_2_PFX "Line 2: "
 
 // Message queue constants
 #define MOTOR_QUEUE_SIZE 1
