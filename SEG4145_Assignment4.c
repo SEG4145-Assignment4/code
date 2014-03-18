@@ -41,6 +41,7 @@
 *********************************************************************************************************
 */
 
+void sendMessageThingy(OS_EVENT* queue, void* msg);
 void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void lcdTask(void*); /* Task 1 declaration */
@@ -115,9 +116,10 @@ void TaskStart(void *pdata)
 	if (queue == 0) printf("LOL U SUK");
     TaskStartCreateTasks();
 
-    INT8U circle_cw = 1; //true if circle goes clockwise, false if circle goes counter clockwise
+    INT8U circle_cw = 0; //true if circle goes clockwise, false if circle goes counter-clockwise
     INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
     while (1) {
+        INT8U command;
         if (PC_GetKey(&key) == TRUE) { //See if key has been pressed
             switch (key) {
                 case 0x1B:
@@ -125,26 +127,31 @@ void TaskStart(void *pdata)
                     break;
                 case '0':
                     if (!mode) {
-
+                        command = MOVE_TILE_FORWARD_MESSAGE;
+                        sendMessageThingy(queue, &command);
                     }
                     else {
-
+                        command = INCREASE_CIRCLE_RADIUS_MESSAGE;
+                        sendMessageThingy(queue, &command);
                     }
                     break;
                 case '1':
                     if (!mode) {
-
+                        command = MOVE_TILE_BACKWARD_MESSAGE;
+                        sendMessageThingy(queue, &command);
                     }
-                    else { //mode == 1
-
+                    else {
+                        circle_cw = (circle_cw + 1) % 2;
                     }
                     break;
                 case '2':
                     if (!mode) {
-
+                        command = TURN_90_CW_MESSAGE;
+                        sendMessageThingy(queue, &command);
                     }
-                    else { //mode == 1
-
+                    else {
+                        command = PERFORM_CIRCLE_CW_MESSAGE + circle_cw;
+                        sendMessageThingy(queue, &command);
                     }
                     break;
                 case '3':
@@ -331,7 +338,17 @@ void Task2(void *pdata)
 				}
 			}
 		}
-		
+
 		OSTimeDly(50);
     }
+}
+
+void sendMessageThingy(OS_EVENT* queue, void* msg) { //LOLOL LEO REPLACE THIS WITH THE REALZ ONE
+    /*
+    INT8U err = OSQPOST(queue, msg);
+    while (err == OS_Q_FULL) {
+        err = OSQPOST(queue, msg);
+    }
+    return err;
+    */
 }
