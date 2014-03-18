@@ -48,7 +48,6 @@
 *********************************************************************************************************
 */
 
-void sendMessageThingy(OS_EVENT* queue, void* msg);
 void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void displayTask(void*); /* Task 1 declaration */
@@ -130,11 +129,11 @@ void TaskStart(void *pdata)
 	// Motor queue initialization
 	motorQueue = OSQCreate(motorQueueData, MOTOR_QUEUE_SIZE);
 	motorSem = OSSemCreate(MOTOR_QUEUE_SIZE);
-	
+
 	// LCD queue initialization
 	lcdQueue = OSQCreate(lcdQueueData, LCD_QUEUE_SIZE);
 	lcdSem = OSSemCreate(LCD_QUEUE_SIZE);
-	
+
     /*
      * Here we create all other tasks (threads)
      */
@@ -152,17 +151,17 @@ void TaskStart(void *pdata)
                 case '0':
                     if (!mode) {
                         command = MOVE_TILE_FORWARD_MESSAGE;
-                        sendMessageThingy(motorQueue, &command);
+                        sendMessage(motorQueue, motorSem, (void*)&command);
                     }
                     else {
                         command = INCREASE_CIRCLE_RADIUS_MESSAGE;
-                        sendMessageThingy(motorQueue, &command);
+                        sendMessage(motorQueue, motorSem, (void*)&command);
                     }
                     break;
                 case '1':
                     if (!mode) {
                         command = MOVE_TILE_BACKWARD_MESSAGE;
-                        sendMessageThingy(motorQueue, &command);
+                        sendMessage(motorQueue, motorSem, (void*)&command);
                     }
                     else {
                         circle_ccw = (circle_ccw + 1) % 2;
@@ -171,11 +170,11 @@ void TaskStart(void *pdata)
                 case '2':
                     if (!mode) {
                         command = TURN_90_CW_MESSAGE;
-                        sendMessageThingy(motorQueue, &command);
+                        sendMessage(motorQueue, motorSem, (void*)&command);
                     }
                     else {
                         command = PERFORM_CIRCLE_CW_MESSAGE + circle_ccw;
-                        sendMessageThingy(motorQueue, &command);
+                        sendMessage(motorQueue, motorSem, (void*)&command);
                     }
                     break;
                 case '3':
@@ -238,7 +237,7 @@ void motorTask(void *pdata)
 	int radius = 2;
     while (1) {
 		INT8U* cmd = (INT8U*)receiveMessage(motorQueue, motorSem);
-		
+
 		if (cmd != 0) {
 			switch (*cmd) {
 				case MOVE_TILE_FORWARD_MESSAGE:
@@ -273,16 +272,6 @@ void motorTask(void *pdata)
 
 		OSTimeDly(50);
     }
-}
-
-void sendMessageThingy(OS_EVENT* queue, void* msg) { //LOLOL LEO REPLACE THIS WITH THE REALZ ONE
-    /*
-    INT8U err = OSQPOST(queue, msg);
-    while (err == OS_Q_FULL) {
-        err = OSQPOST(queue, msg);
-    }
-    return err;
-    */
 }
 
 // Sends the given message to the given message queue. Returns 1
