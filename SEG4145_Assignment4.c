@@ -35,6 +35,12 @@
 #define PERFORM_CIRCLE_CCW_MESSAGE 4
 #define INCREASE_CIRCLE_RADIUS_MESSAGE 5
 
+// Task message prefixes
+#define MOTOR_PFX "Motor Task: "
+#define DISPLAY_PFX "Display Task: "
+#define LCD_PFX "Message displayed on LCD: "
+#define LED_PFX "LED Pattern: "
+
 // Message queue constants
 #define MOTOR_QUEUE_SIZE 1
 #define LCD_QUEUE_SIZE 1
@@ -223,9 +229,7 @@ void displayTask(void *pdata)
     while (1) {
      char *msg = (char*)receiveMessage(lcdQueue, lcdSem);
 	 if(msg != NULL) {
-		printf("Message printed to LCD screen: ");
-		printf(msg);
-		printf("\n");
+		printf("%s%s\n", DISPLAY_PFX, msg);
 	 }
 
 	OSTimeDly(50);
@@ -241,33 +245,45 @@ void motorTask(void *pdata)
 		if (cmd != 0) {
 			switch (*cmd) {
 				case MOVE_TILE_FORWARD_MESSAGE:
-					printf("Move one tile forward\n");
+					printf("%sMove one tile forward\n", MOTOR_PFX);
+					char ledBuf[50];
+					char lcdBuf[50];
+					sprintf(ledBuf, "%s01010101", LED_PFX);
+					sprintf(lcdBuf, "%sMoving FWD", LCD_PFX);
+					sendMessage(lcdQueue, lcdSem, ledBuf);
+					sendMessage(lcdQueue, lcdSem, lcdBuf);
 					break;
 				case MOVE_TILE_BACKWARD_MESSAGE:
-					printf("Move one tile backwards\n");
+					printf("%sMove one tile backwards\n", MOTOR_PFX);
 					break;
 				case TURN_90_CW_MESSAGE:
-					printf("Turn 90 degrees clockwise\n");
+					printf("%sTurn 90 degrees clockwise\n", MOTOR_PFX);
 					break;
 				case PERFORM_CIRCLE_CW_MESSAGE:
-					printf("Moving in a clockwise circle\n");
+					printf("%sMoving in a clockwise circle\n", MOTOR_PFX);
 					break;
 				case PERFORM_CIRCLE_CCW_MESSAGE:
-					printf("Moving in a counter-clockwise circle\n");
+					printf("%sMoving in a counter-clockwise circle\n", MOTOR_PFX);
 					break;
 				case INCREASE_CIRCLE_RADIUS_MESSAGE:
 					radius++;
 					if(radius == 5) {
 						radius = 2;
 					}
-					printf("Circle radius changed to ");
-					printf("%d", radius);
-					printf("\n");
+					printf("%sCircle radius changed to %d\n", MOTOR_PFX, radius);
 					break;
 				default:
-					printf("Invalid command\n");
+					printf("%sInvalid command\n");
 					break;
 			}
+			OSTimeDly(50); // Wait an arbitrary amount of time
+			printf("%sMotors have stopped\n", MOTOR_PFX);
+			char stopLedBuf[50];
+			char stopLcdBuf[50];
+			sprintf(stopLedBuf, "%s00000000", LED_PFX);
+			sprintf(stopLcdBuf, "%sStopped", LCD_PFX);
+			sendMessage(lcdQueue, lcdSem, stopLedBuf);
+			sendMessage(lcdQueue, lcdSem, stopLcdBuf);
 		}
 
 		OSTimeDly(50);
