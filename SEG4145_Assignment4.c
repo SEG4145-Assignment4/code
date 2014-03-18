@@ -116,7 +116,7 @@ void TaskStart(void *pdata)
 	if (queue == 0) printf("LOL U SUK");
     TaskStartCreateTasks();
 
-    INT8U circle_cw = 0; //true if circle goes clockwise, false if circle goes counter-clockwise
+    INT8U circle_ccw = 0; //true if circle goes counter-clockwise, false if circle goes clockwise
     INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
     while (1) {
         INT8U command;
@@ -141,7 +141,7 @@ void TaskStart(void *pdata)
                         sendMessageThingy(queue, &command);
                     }
                     else {
-                        circle_cw = (circle_cw + 1) % 2;
+                        circle_ccw = (circle_ccw + 1) % 2;
                     }
                     break;
                 case '2':
@@ -150,7 +150,7 @@ void TaskStart(void *pdata)
                         sendMessageThingy(queue, &command);
                     }
                     else {
-                        command = PERFORM_CIRCLE_CW_MESSAGE + circle_cw;
+                        command = PERFORM_CIRCLE_CW_MESSAGE + circle_ccw;
                         sendMessageThingy(queue, &command);
                     }
                     break;
