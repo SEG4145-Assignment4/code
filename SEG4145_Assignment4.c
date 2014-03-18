@@ -36,7 +36,6 @@
 #define INCREASE_CIRCLE_RADIUS_MESSAGE 5
 
 // Task message prefixes
-#define CONTROL_PFX "Control Task: "
 #define MOTOR_PFX "Motor Task: "
 #define DISPLAY_PFX "Display Task: "
 #define SEVEN_SEGMENT_PFX "Number On 7 Segment Display: "
@@ -165,16 +164,16 @@ void TaskStart(void *pdata)
     char bufMessage4[150];
 
     //Initial print for
-    sprintf(bufMessage1, "%s%s%s%s", CONTROL_PFX, LCD_PFX, LINE_1_PFX, STUDENT_NUMBER_OLIVIER);
+    sprintf(bufMessage1, "%s%s%s", LCD_PFX, LINE_1_PFX, STUDENT_NUMBER_OLIVIER);
     sendMessage(lcdQueue, lcdSem, bufMessage1);
 
-    sprintf(bufMessage2, "%s%s%s%s", CONTROL_PFX, LCD_PFX, LINE_2_PFX, STUDENT_NUMBER_LEO);
+    sprintf(bufMessage2, "%s%s%s", LCD_PFX, LINE_2_PFX, STUDENT_NUMBER_LEO);
     sendMessage(lcdQueue, lcdSem, bufMessage2);
 
-    sprintf(bufMessage3, "%s%s0", CONTROL_PFX, SEVEN_SEGMENT_PFX);
+    sprintf(bufMessage3, "%s0", SEVEN_SEGMENT_PFX);
     sendMessage(lcdQueue, lcdSem, bufMessage3);
 
-    sprintf(bufMessage4, "%s%s00000000", CONTROL_PFX, LED_PFX);
+    sprintf(bufMessage4, "%s00000000", LED_PFX);
     sendMessage(lcdQueue, lcdSem, bufMessage4);
 
     while (1) {
@@ -189,11 +188,10 @@ void TaskStart(void *pdata)
                 case '0':
                     if (!isStarted) {
                         isStarted = 1;
-
-                        sprintf(lcdMessage1, "%s%s%d", CONTROL_PFX, SEVEN_SEGMENT_PFX, mode + 1);
+                        //print mode
+                        sprintf(lcdMessage1, "%s%d", SEVEN_SEGMENT_PFX, mode + 1);
                         sendMessage(lcdQueue, lcdSem, lcdMessage1);
-
-                        sprintf(lcdMessage2, "%s%s%sMode: %d", CONTROL_PFX, LINE_1_PFX, LCD_PFX, mode + 1);
+                        sprintf(lcdMessage2, "%s%sMode: %d", LINE_1_PFX, LCD_PFX, mode + 1);
                         sendMessage(lcdQueue, lcdSem, lcdMessage2);
                     } else {
                         if (!mode) {
@@ -222,6 +220,7 @@ void TaskStart(void *pdata)
                             }
                             sprintf(lcdMessage1, "%s%sDirection: %s", LCD_PFX, LINE_2_PFX, direction);
                             sendMessage(lcdQueue, lcdSem, lcdMessage1);
+                            stopAfterDelay(MIN_DELAY, 0);
                         }
                     }
                     break;
@@ -241,10 +240,10 @@ void TaskStart(void *pdata)
                     if (isStarted) { //we assume that modes cant be switched until SW0 is pressed
                         mode = !mode;
 
-                        sprintf(lcdMessage1, "%s%s%d", CONTROL_PFX, SEVEN_SEGMENT_PFX, mode + 1);
+                        sprintf(lcdMessage1, "%s%d", SEVEN_SEGMENT_PFX, mode + 1);
                         sendMessage(lcdQueue, lcdSem, lcdMessage1);
 
-                        sprintf(lcdMessage2, "%s%s%sMode: %d", CONTROL_PFX, LINE_1_PFX, LCD_PFX, mode + 1);
+                        sprintf(lcdMessage2, "%s%sMode: %d", LINE_1_PFX, LCD_PFX, mode + 1);
                         sendMessage(lcdQueue, lcdSem, lcdMessage2);
                     }
                     break;
