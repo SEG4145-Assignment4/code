@@ -52,14 +52,10 @@ void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void lcdTask(void*); /* Task 1 declaration */
 void Task2(void*); /* Task 2 declaration */
-<<<<<<< HEAD
-=======
-void keyboardControlTask(void*); /* keyboardControlTask declaration */
 void sendMessage(OS_EVENT* queue, OS_EVENT* sem, void* msg); /* sendMessage declaration */
 void* receiveMessage(OS_EVENT* queue, OS_EVENT* sem); /* receiveMessage declaration */
 void printQueueError(INT8U error); /* printQueueError declaration */
 void printSemaphoreError(INT8U error); /* printSemaphoreError declaration */
->>>>>>> FINALLY added message sending logic.
 
 /*
 *********************************************************************************************************
@@ -70,19 +66,12 @@ void printSemaphoreError(INT8U error); /* printSemaphoreError declaration */
 OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
-<<<<<<< HEAD
-OS_EVENT* queue;
-char dummyArr[5];
 void* TaskPointers[N_TASKS] = { lcdTask, Task2 };	/* Function pointers to the tasks */
-=======
 
 // Motor queue variables
 OS_EVENT* motorQueue; /* The queue for sending messages to the motor */
 void* motorQueueData[MOTOR_QUEUE_SIZE]; /* The memory space for the motor queue */
 OS_EVENT* motorSem; /* The semaphore controlling access to the motor queue */
-
-void* TaskPointers[N_TASKS] = { Task1, Task2, keyboardControlTask };	/* Function pointers to the tasks */
->>>>>>> FINALLY added message sending logic.
 
 /*
 *********************************************************************************************************
@@ -153,17 +142,17 @@ void TaskStart(void *pdata)
                 case '0':
                     if (!mode) {
                         command = MOVE_TILE_FORWARD_MESSAGE;
-                        sendMessageThingy(queue, &command);
+                        sendMessageThingy(motorQueue, &command);
                     }
                     else {
                         command = INCREASE_CIRCLE_RADIUS_MESSAGE;
-                        sendMessageThingy(queue, &command);
+                        sendMessageThingy(motorQueue, &command);
                     }
                     break;
                 case '1':
                     if (!mode) {
                         command = MOVE_TILE_BACKWARD_MESSAGE;
-                        sendMessageThingy(queue, &command);
+                        sendMessageThingy(motorQueue, &command);
                     }
                     else {
                         circle_ccw = (circle_ccw + 1) % 2;
@@ -172,11 +161,11 @@ void TaskStart(void *pdata)
                 case '2':
                     if (!mode) {
                         command = TURN_90_CW_MESSAGE;
-                        sendMessageThingy(queue, &command);
+                        sendMessageThingy(motorQueue, &command);
                     }
                     else {
                         command = PERFORM_CIRCLE_CW_MESSAGE + circle_ccw;
-                        sendMessageThingy(queue, &command);
+                        sendMessageThingy(motorQueue, &command);
                     }
                     break;
                 case '3':
