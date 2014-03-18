@@ -36,12 +36,17 @@
 #define INCREASE_CIRCLE_RADIUS_MESSAGE 5
 
 // Task message prefixes
+#define CONTROL_PFX "Control Task: "
 #define MOTOR_PFX "Motor Task: "
 #define DISPLAY_PFX "Display Task: "
+#define SEVEN_SEGMENT_PFX "Number On 7 Segment Display: "
 #define LCD_PFX "Message displayed on LCD: "
 #define LED_PFX "LED Pattern: "
 #define LINE_1_PFX "Line 1: "
 #define LINE_2_PFX "Line 2: "
+
+#define STUDENT_NUMBER_OLIVIER "6030537"
+#define STUDENT_NUMBER_LEO "6013618"
 
 // Message queue constants
 #define MOTOR_QUEUE_SIZE 1
@@ -152,8 +157,29 @@ void TaskStart(void *pdata)
     TaskStartCreateTasks();
 
     INT8U circle_ccw = 0; //true if circle goes counter-clockwise, false if circle goes clockwise
+    INT8U isStarted = 0;
     INT8U mode = 0; //mode 0 == mode 1 in requirements, mode 1 == mode 2 in requirements
+    char bufMessage1[150];
+    char bufMessage2[150];
+    char bufMessage3[150];
+    char bufMessage4[150];
+
+    //Initial print for
+    sprintf(bufMessage1, "%s%s%s%s", CONTROL_PFX, LCD_PFX, LINE_1_PFX, STUDENT_NUMBER_OLIVIER);
+    sendMessage(lcdQueue, lcdSem, bufMessage1);
+
+    sprintf(bufMessage2, "%s%s%s%s", CONTROL_PFX, LCD_PFX, LINE_2_PFX, STUDENT_NUMBER_LEO);
+    sendMessage(lcdQueue, lcdSem, bufMessage2);
+
+    sprintf(bufMessage3, "%s%s0", CONTROL_PFX, SEVEN_SEGMENT_PFX);
+    sendMessage(lcdQueue, lcdSem, bufMessage3);
+
+    sprintf(bufMessage4, "%s%s00000000", CONTROL_PFX, LED_PFX);
+    sendMessage(lcdQueue, lcdSem, bufMessage4);
+
     while (1) {
+        char lcdMessage1[150];
+        char lcdMessage2[150];
         INT8U command;
         if (PC_GetKey(&key) == TRUE) { //See if key has been pressed
             switch (key) {
@@ -161,36 +187,66 @@ void TaskStart(void *pdata)
                     exit(0);
                     break;
                 case '0':
-                    if (!mode) {
-                        command = MOVE_TILE_FORWARD_MESSAGE;
-                        sendMessage(motorQueue, motorSem, (void*)&command);
-                    }
-                    else {
-                        command = INCREASE_CIRCLE_RADIUS_MESSAGE;
-                        sendMessage(motorQueue, motorSem, (void*)&command);
+                    if (!isStarted) {
+                        isStarted = 1;
+
+                        sprintf(lcdMessage1, "%s%s%d", CONTROL_PFX, SEVEN_SEGMENT_PFX, mode + 1);
+                        sendMessage(lcdQueue, lcdSem, lcdMessage1);
+
+                        sprintf(lcdMessage2, "%s%s%sMode: %d", CONTROL_PFX, LINE_1_PFX, LCD_PFX, mode + 1);
+                        sendMessage(lcdQueue, lcdSem, lcdMessage2);
+                    } else {
+                        if (!mode) {
+                            command = MOVE_TILE_FORWARD_MESSAGE;
+                            sendMessage(motorQueue, motorSem, (void*)&command);
+                        }
+                        else {
+                            command = INCREASE_CIRCLE_RADIUS_MESSAGE;
+                            sendMessage(motorQueue, motorSem, (void*)&command);
+                        }
                     }
                     break;
                 case '1':
-                    if (!mode) {
-                        command = MOVE_TILE_BACKWARD_MESSAGE;
-                        sendMessage(motorQueue, motorSem, (void*)&command);
-                    }
-                    else {
-                        circle_ccw = (circle_ccw + 1) % 2;
+                    if (isStarted) {
+                        if (!mode) {
+                            command = MOVE_TILE_BACKWARD_MESSAGE;
+                            sendMessage(motorQueue, motorSem, (void*)&command);
+                        }
+                        else {
+                            circle_ccw = (circle_ccw + 1) % 2;
+                            char direction[5];
+                            if (circle_ccw == 0) {
+                                snprintf(direction, 5, "CW");
+                            } else {
+                                snprintf(direction, 5, "CCW");
+                            }
+                            sprintf(lcdMessage1, "%s%sDirection: %s", LCD_PFX, LINE_2_PFX, direction);
+                            sendMessage(lcdQueue, lcdSem, lcdMessage1);
+                        }
                     }
                     break;
                 case '2':
-                    if (!mode) {
-                        command = TURN_90_CW_MESSAGE;
-                        sendMessage(motorQueue, motorSem, (void*)&command);
-                    }
-                    else {
-                        command = PERFORM_CIRCLE_CW_MESSAGE + circle_ccw;
-                        sendMessage(motorQueue, motorSem, (void*)&command);
+                    if (isStarted) {
+                        if (!mode) {
+                            command = TURN_90_CW_MESSAGE;
+                            sendMessage(motorQueue, motorSem, (void*)&command);
+                        }
+                        else {
+                            command = PERFORM_CIRCLE_CW_MESSAGE + circle_ccw;
+                            sendMessage(motorQueue, motorSem, (void*)&command);
+                        }
                     }
                     break;
                 case '3':
-                    mode = !mode;
+                    if (isStarted) { //we assume that modes cant be switched until SW0 is pressed
+                        mode = !mode;
+
+                        sprintf(lcdMessage1, "%s%s%d", CONTROL_PFX, SEVEN_SEGMENT_PFX, mode + 1);
+                        sendMessage(lcdQueue, lcdSem, lcdMessage1);
+
+                        sprintf(lcdMessage2, "%s%s%sMode: %d", CONTROL_PFX, LINE_1_PFX, LCD_PFX, mode + 1);
+                        sendMessage(lcdQueue, lcdSem, lcdMessage2);
+                    }
                     break;
             }
         }
