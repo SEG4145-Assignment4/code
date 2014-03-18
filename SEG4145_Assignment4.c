@@ -47,6 +47,9 @@
 #define MOTOR_QUEUE_SIZE 1
 #define LCD_QUEUE_SIZE 1
 
+// Motor constants
+#define MIN_DELAY 50
+
 // Debug flag
 // #define DEBUG_MODE
 
@@ -64,6 +67,7 @@ void sendMessage(OS_EVENT* queue, OS_EVENT* sem, void* msg); /* sendMessage decl
 void* receiveMessage(OS_EVENT* queue, OS_EVENT* sem); /* receiveMessage declaration */
 void printQueueError(INT8U error); /* printQueueError declaration */
 void printSemaphoreError(INT8U error); /* printSemaphoreError declaration */
+void stopAfterDelay(int delay); /* stopAfterDelay declaration */
 
 /*
 *********************************************************************************************************
@@ -245,27 +249,48 @@ void motorTask(void *pdata)
 		INT8U* cmd = (INT8U*)receiveMessage(motorQueue, motorSem);
 
 		if (cmd != 0) {
+			char ledBuf[100];
+			char lcdBuf[100];
 			switch (*cmd) {
 				case MOVE_TILE_FORWARD_MESSAGE:
 					printf("%sMove one tile forward\n", MOTOR_PFX);
-					char ledBuf[50];
-					char lcdBuf[50];
 					sprintf(ledBuf, "%s01010101", LED_PFX);
-					sprintf(lcdBuf, "%sMoving FWD", LCD_PFX);
+					sprintf(lcdBuf, "%s%sMoving FWD", LCD_PFX, LINE_2_PFX);
 					sendMessage(lcdQueue, lcdSem, ledBuf);
 					sendMessage(lcdQueue, lcdSem, lcdBuf);
+					stopAfterDelay(MIN_DELAY);
 					break;
 				case MOVE_TILE_BACKWARD_MESSAGE:
 					printf("%sMove one tile backwards\n", MOTOR_PFX);
+					sprintf(ledBuf, "%s11001100", LED_PFX);
+					sprintf(lcdBuf, "%s%sMoving BK", LCD_PFX, LINE_2_PFX);
+					sendMessage(lcdQueue, lcdSem, ledBuf);
+					sendMessage(lcdQueue, lcdSem, lcdBuf);
+					stopAfterDelay(MIN_DELAY);
 					break;
 				case TURN_90_CW_MESSAGE:
 					printf("%sTurn 90 degrees clockwise\n", MOTOR_PFX);
+					sprintf(ledBuf, "%s00111100", LED_PFX);
+					sprintf(lcdBuf, "%s%sTurning CW", LCD_PFX, LINE_2_PFX);
+					sendMessage(lcdQueue, lcdSem, ledBuf);
+					sendMessage(lcdQueue, lcdSem, lcdBuf);
+					stopAfterDelay(MIN_DELAY);
 					break;
 				case PERFORM_CIRCLE_CW_MESSAGE:
-					printf("%sMoving in a clockwise circle\n", MOTOR_PFX);
+					printf("%sMoving in a clockwise circle of radius %d\n", MOTOR_PFX, radius);
+					sprintf(ledBuf, "%s00111100", LED_PFX);
+					sprintf(lcdBuf, "%s%sTurning CW", LCD_PFX, LINE_2_PFX);
+					sendMessage(lcdQueue, lcdSem, ledBuf);
+					sendMessage(lcdQueue, lcdSem, lcdBuf);
+					stopAfterDelay(MIN_DELAY * (radius - 1)); // Make the delay proportional to the radius
 					break;
 				case PERFORM_CIRCLE_CCW_MESSAGE:
-					printf("%sMoving in a counter-clockwise circle\n", MOTOR_PFX);
+					printf("%sMoving in a counter-clockwise circle of radius %d\n", MOTOR_PFX, radius);
+					sprintf(ledBuf, "%s11000011", LED_PFX);
+					sprintf(lcdBuf, "%s%sTurning CCW", LCD_PFX, LINE_2_PFX);
+					sendMessage(lcdQueue, lcdSem, ledBuf);
+					sendMessage(lcdQueue, lcdSem, lcdBuf);
+					stopAfterDelay(MIN_DELAY * (radius - 1)); // Make the delay proportional to the radius
 					break;
 				case INCREASE_CIRCLE_RADIUS_MESSAGE:
 					radius++;
@@ -278,18 +303,22 @@ void motorTask(void *pdata)
 					printf("%sInvalid command\n");
 					break;
 			}
-			OSTimeDly(50); // Wait an arbitrary amount of time
-			printf("%sMotors have stopped\n", MOTOR_PFX);
-			char stopLedBuf[50];
-			char stopLcdBuf[50];
-			sprintf(stopLedBuf, "%s00000000", LED_PFX);
-			sprintf(stopLcdBuf, "%sStopped", LCD_PFX);
-			sendMessage(lcdQueue, lcdSem, stopLedBuf);
-			sendMessage(lcdQueue, lcdSem, stopLcdBuf);
 		}
 
 		OSTimeDly(50);
     }
+}
+
+// Stops the robot after the given delay in ticks.
+void stopAfterDelay(int delay) {
+	OSTimeDly(delay); // Wait an arbitrary amount of time
+	printf("%sMotors have stopped\n", MOTOR_PFX);
+	char ledBuf[100];
+	char lcdBuf[100];
+	sprintf(ledBuf, "%s00000000", LED_PFX);
+	sprintf(lcdBuf, "%s%sStopped", LCD_PFX, LINE_2_PFX);
+	sendMessage(lcdQueue, lcdSem, ledBuf);
+	sendMessage(lcdQueue, lcdSem, lcdBuf);
 }
 
 // Sends the given message to the given message queue. Returns 1
