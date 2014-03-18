@@ -1,4 +1,10 @@
 /*
+*   ASSIGNMENT #4 TEAM:
+*
+*       Olivier Trahan: 6030537
+*       Léo Denault: 6013618
+*       Michael Thomas William Brost: 6101176
+*
 *********************************************************************************************************
 *                                                uC/OS-II
 *                                          The Real-Time Kernel
