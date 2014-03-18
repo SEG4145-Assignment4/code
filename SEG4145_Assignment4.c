@@ -51,7 +51,7 @@ void sendMessageThingy(OS_EVENT* queue, void* msg);
 void TaskStart(void *data);				/* Startup task							 */
 static void TaskStartCreateTasks(void);         /* Will be used to create all the child tasks          */
 void lcdTask(void*); /* Task 1 declaration */
-void Task2(void*); /* Task 2 declaration */
+void motorTask(void*); /* Task 2 declaration */
 void sendMessage(OS_EVENT* queue, OS_EVENT* sem, void* msg); /* sendMessage declaration */
 void* receiveMessage(OS_EVENT* queue, OS_EVENT* sem); /* receiveMessage declaration */
 void printQueueError(INT8U error); /* printQueueError declaration */
@@ -66,7 +66,7 @@ void printSemaphoreError(INT8U error); /* printSemaphoreError declaration */
 OS_STK TaskStartStk[TASK_STK_SIZE];			/* Start task's stack						 */
 OS_STK TaskStk[N_TASKS][TASK_STK_SIZE];         /* Stacks for other (child) tasks				 */
 INT8U TaskData[N_TASKS];				/* Parameters to pass to each task                     */
-void* TaskPointers[N_TASKS] = { lcdTask, Task2 };	/* Function pointers to the tasks */
+void* TaskPointers[N_TASKS] = { lcdTask, motorTask };	/* Function pointers to the tasks */
 
 // Motor queue variables
 OS_EVENT* motorQueue; /* The queue for sending messages to the motor */
@@ -223,37 +223,42 @@ void lcdTask(void *pdata)
     }
 }
 
-void Task2(void *pdata)
+void motorTask(void *pdata)
 {
 	int radius = 2;
     while (1) {
-		INT8U cmd = -1; //TODO read from message queue
-		if(cmd == MOVE_TILE_FORWARD_MESSAGE) {
-			printf("Move one tile forward\n");
-		}
-		else if(cmd == MOVE_TILE_BACKWARD_MESSAGE) {
-			printf("Move one tile backwards\n");
-		}
-		else if(cmd == TURN_90_CW_MESSAGE) {
-			printf("Turn 90 degrees clockwise\n");
-		}
-		else if(cmd == PERFORM_CIRCLE_CW_MESSAGE) {
-			printf("Moving in a clockwise circle\n");
-		}
-		else if(cmd == PERFORM_CIRCLE_CCW_MESSAGE) {
-			printf("Moving in a counter-clockwise circle\n");
-		}
-		else if(cmd == INCREASE_CIRCLE_RADIUS_MESSAGE) {
-			radius++;
-			if(radius == 5) {
-				radius = 2;
+		INT8U* cmd = (INT8U*)receiveMessage(motorQueue, motorSem);
+		
+		if (cmd != 0) {
+			switch (*cmd) {
+				case MOVE_TILE_FORWARD_MESSAGE:
+					printf("Move one tile forward\n");
+					break;
+				case MOVE_TILE_BACKWARD_MESSAGE:
+					printf("Move one tile backwards\n");
+					break;
+				case TURN_90_CW_MESSAGE:
+					printf("Turn 90 degrees clockwise\n");
+					break;
+				case PERFORM_CIRCLE_CW_MESSAGE:
+					printf("Moving in a clockwise circle\n");
+					break;
+				case PERFORM_CIRCLE_CCW_MESSAGE:
+					printf("Moving in a counter-clockwise circle\n");
+					break;
+				case INCREASE_CIRCLE_RADIUS_MESSAGE:
+					radius++;
+					if(radius == 5) {
+						radius = 2;
+					}
+					printf("Circle radius changed to ");
+					printf("%d", radius);
+					printf("\n");
+					break;
+				default:
+					printf("Invalid command\n");
+					break;
 			}
-			printf("Circle radius changed to ");
-			printf("%d", radius);
-			printf("\n");
-		}
-		else {
-			printf("Invalid command\n");
 		}
 
 		OSTimeDly(50);
